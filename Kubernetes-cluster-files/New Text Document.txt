@@ -1,0 +1,23 @@
+In Virtualization, basic scheduling unit is Virtual Machine(VM)
+
+In Containerization, basic scheduling unit is Containerization
+
+In Kubernetes, what is basic scheduling unit?
+
+         PODS
+
+What are pods on kubernetes?
+what is difference between container and pods?
+How to create PODS in kubernetes?
+
+
+Objective:
+----------
+
+1. what is pod?
+2. POD deployment(how pods are deployment in kubernetes)
+3. Multi-container(how to use multiple container in single pod)
+4. POD networking (How does pod networking works)
+5. Inter & Intra pod communication (what is Inter-pod networking && what is Intra-pod networking)
+6. POD Lifecycle ( stages of pod lifecycle)
+7. POD Manifest file ( how to write pod manifest file)
