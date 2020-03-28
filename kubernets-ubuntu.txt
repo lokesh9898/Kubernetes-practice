@@ -1,0 +1,110 @@
+VM Location's : C:\Ramky-Drive\Local-VM's\VM's\ubuntu-k8s_new\k8m
+VM Location's : C:\Ramky-Drive\Local-VM's\VM's\ubuntu-k8s_new\k8n1
+Master IP : 192.168.33.100
+Node1 IP : 192.168.33.101
+
+#Vagrant Image for Centos 
+bento/ubuntu-18.04
+
+
+# Requriments
+
+
+Box login UserID : vagrant
+Box login Paswword : vagrant
+
+# kubelet requires swap off
+swapoff -a
+
+#make swap off even machine restart
+sed -i '/swap/ s/^/#/' /etc/fstab
+
+# update for all packages and install transport-https
+apt-get update && apt-get install -y apt-transport-https
+
+# Add the gpg check key into server
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
+# Add the Kubernets list of packages
+cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+# update for all packages
+apt-get update
+
+#Installing and starting docker with 18.06.1-0ubuntu1
+apt-get install -y docker.io
+
+# enable the docker service 
+systemctl enable docker
+
+# start the docker service
+systemctl start docker.service
+
+# check the docker status
+systemctl status docker.service
+
+# Now Install for all kubelet kubeadm kubectl nfs-utils
+apt-get -y install kubelet=1.12.2-00
+apt-get -y install kubeadm=1.12.2-00
+apt-get -y install kubectl=1.12.2-00 (some times the kubectl version is high so you can use below command for downgrades)
+ or 
+apt-get -y install kubectl=1.12.2-00 --allow-downgrades
+apt-get -y install kubernetes-cni=1.12.2-00
+	or 
+apt-get -y install kubernetes-cni --allow-downgrades
+apt-get -y install nfs-utils=1.12.2-00
+
+
+sudo apt-get install kubeadm=1.13.4-00 kubelet=1.13.4-00 kubectl=1.13.4-00 kubernetes-cni=0.6.0-00
+
+
+# check the for all kube configfiles
+cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+
+# system off
+sysctl --system
+
+# run the below command for kubeadm
+sed -i "s/cgroup-driver=systemd/cgroup-driver=cgroupfs/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.
+
+#Instaling kubeadm 
+kubeadm init --apiserver-advertise-address=192.168.33.100 --pod-network-cidr=10.32.0.0/12
+
+# enabling DNS for kube cluster
+kubectl apply --filename https://git.io/weave-kube-1.6
+ or 
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+
+# copy the below kube details
+sudo cp /etc/kubernetes/admin.conf $HOME/
+sudo chown $(id -u):$(id -g) $HOME/
+export KUBECONFIG=$HOME/admin.conf
+
+# get nodes 
+kubectl get nodes
+
+# get pods 
+kubectl get pods --all-namespaces
+
+# DNS 
+kubectl apply --filename https://git.io/weave-kube-1.6
+
+# Restart the kubernetes
+systemctl restart kubelet.service
+
+
+
+
+
+Reading state information... Done
+kubeadm is already the newest version (1.13.4-00).
+kubectl is already the newest version (1.13.4-00).
+kubelet is already the newest version (1.13.4-00).
+kubernetes-cni is already the newest version (0.6.0-00).
+0 upgraded, 0 newly installed, 0 to remove and 126 not upgraded.

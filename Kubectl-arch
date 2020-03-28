@@ -1,0 +1,120 @@
+Imagine that we have installed and configure kubernetes cluster, It's time to deploy applications and manage objects inside the kubernetes cluster
+
+How can you create and manage kubernetes objects from command line?
+Kubectl
+
+
+What is kubectl? How we can use kubectl to manage kubernetes objects such as pods, deployments nd services all using kubectl?
+
+Objectives
+----------
+  Concept:
+    1. Overview of "kubectl"
+    2. Kubectl syntax
+
+  Review Demo:
+    a. Using kubectl
+        - create, Get
+        - describe, delete
+        - exec, logs
+
+Overview of kubectl:
+--------------------
+
+  Kubectl is command-line utility tool for running commands against kubernetes cluster.
+  We use kubectl command in kubernetes to creating, updating, displaying and even kubernetes objects
+  kubectl is also known as "kubectl", "kube control" or "kube command line tool"
+
+Syntax of "kubectl":
+--------------------
+
+  kubectl [command] [TYPE] [NAME] [flags]
+
+    Command - specifies the operations across kubernetes cluster on one or more resources
+        {create,  get, describe, delete, logs, exec, edit, run, apply, scale} - operations of kubernetes, operates on resource types
+    TYPE - specifies the resource types, resource types are case-insenstive, resource types are singular, plural, uppercase or lowercase
+    {
+               OR
+      pod(s) ----------------------> po
+      deployment(s) ---------------> deploy
+      replicaset(s) ---------------> rs
+      replicationcontroller(S) ----> rc
+      service(s) ------------------> svc
+      daemonset(s) ----------------> ds
+      namespace(s) ----------------> ns
+      persistentvolume(s) ---------> pv
+      persistentcolumeclaim(s) ----> pvc...
+      job(s) ----------------------> no short form
+      cronjob(s)-------------------> no short form
+    }
+
+    FLAGS - We can use options to provide wide output. ...etc
+
+
+ Ex: kubectl get pod nginx-prod -w
+
+
+ Kubectl - create :
+ -----------------
+    TO create kubernetes objects inside kubernetes - we use "create" command. Will pass the kubernetes manifests file as arguments to this command. These can support json or yaml file
+    Generally, manifests files are written in "YAML" format. Manifests contain the pod definition, These manifests files contain the container images about to deploy.
+
+    Eg: kubectl create -f pod-example.yaml
+        kubectl create -f deploy-example.yaml
+        kubectl create -f <Directory>{if we want to deploy multiple manifests, we can save all in the folder}
+
+ Kubectl - get :
+ --------------
+   TO display the resources, we use the "get" command. This command displays high level information of a resource
+
+   SYNTAX: kubectl get [TYPE(s)] [NAME(s)] [FLAGS] - List one or more resources
+
+    Eg: kubectl get pods <pod-name>
+        kubectl get pods -o wide
+        kubectl get pods,deploy - multiple output
+
+
+  Kubectl - describe :
+  --------------------
+     If you want to display complete detailed output  of specific resources include the list of events, we can use describe command. This command really helpful for troubleshooting purpose
+     This command displays complete information of a specific resource include events of a specific resource.
+
+     SYNTAX: kubectl describe [TYPE] [NAME] - Display detailed state of one or more resources
+
+     Eg: kubectl describe nodes <nodes-name>
+         kubectl describe pods <pod-name>
+         kubectl describe pods
+
+
+  Kubectl - delete :
+  ------------------
+     It is used to delete the resources created by manifest files
+
+     Eg: kubectl delete -f pod.yaml
+         kubectl delete pods,services -l name=<label-name>
+         kubectl delete pods --all (pods means one or more containers)
+
+
+
+  Kubectl - execute:
+  ------------------
+    With the help of exec command, we interact with containers. Let's see how to get information from containers
+
+     SYNTAX: kubectl exec - Execute a command against a container in a pod
+
+     Eg: kubectl exec <pod-name> date
+         kubectl exec <pod-name> -c <container-name> date
+         kubectl exec -it <pod-name> /bin/bash {it --> interactive terminal} - this command to provide the bash prompt to execute commands directly on the container
+
+
+  How can we print the logs of a container?
+ Let's imagine that we have schedule a pod and when it is created, it will created from start 1 to 10. How can see the output of it?(that' why we need kubectl logs command)
+
+  Kubectl - logs:
+  ----------------
+  TO display the logs of a container in a pod
+
+   SYNTAX: kubectl logs - print the logs of a container
+
+   Eg: kubectl logs <pod-name>
+       kubectl logs -f <pod-name> {to display the logs in a running container}
