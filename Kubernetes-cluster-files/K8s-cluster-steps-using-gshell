@@ -34,16 +34,16 @@ OS:   CentOS/RHEL/Ubuntu/
  # Note: Execute on all nodes (master & Nodes)
 
  # Kubernetes Repository
- cat <<EOF > /etc/yum.repos.d/kubernetes.repo
- [kubernetes]
- name=kubernetes
- baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
- enabled=1
- gpgcheck=1
- repo_gpgcheck=1
- gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpc-package-key.gpg
- exclude=kube*
- EOF
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc//yum-key.gpg https://packages.cloud.google.com/yum/doc//rpc-package-key.gpg
+exclude=kube*
+EOF
 
  # Install Docker | Kubeadm | kubelet | Kubectl
  yum update -y
@@ -62,9 +62,10 @@ OS:   CentOS/RHEL/Ubuntu/
  EOF
 
 sysctl net.bridge.bridge-nf-call-iptables=1
-systctl net.ipv4.ip_forward=1
-systcl --system
-echo "1" > /proc/sys/net/ipv4/ip_forward
+sysctl net.ipv4.ip_forward=1
+sysctl --system
+
+
 
 #Restart the systemd daemon and the kublet service commands:
 systemctl daemon-reload
@@ -92,7 +93,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # Installing Flannel network-plug-in for cluster network
 
 When we apply init command we will get below n/w command in the output
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/a70459be0084506e4ec919aa1c114638878db11b/Documentation/kube-flannel.yml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 kubectl get pods --all-namespaces
 
 
