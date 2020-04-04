@@ -1,1 +1,1 @@
-Kubernete Cluste Repo
+Kubernete Cluster Repo
