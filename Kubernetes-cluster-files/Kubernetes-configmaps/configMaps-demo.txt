@@ -1,0 +1,215 @@
+
+******************************************************************************************************************
+.
+. Demo: ConfigMaps | Lokesh Kumar
+.
+******************************************************************************************************************
+
+Overview:
+---------
+1. Creating Configmap from " multipe files" & Consuming it insdie Pod from "Volumes"
+   
+   1a. Create Configmap "niginx-configmap-vol" from "volumes"
+   1b. Consume "nginx-configmap-vol" configmap inside Pod from "volumes"
+   1c. Create | Display | Validate
+
+2. Creating configmap from "literal values" & Consuming it inside Pod from "environment variables"
+ 
+  2a. Create "redis-configmap-env" from "literal values"
+  2b. Consume "redis-configmap-env" configmap inside Pod from "environment variables"
+  2c. Create | Display | Validate
+
+3. Cleanup
+
+   3a. Delete configmaps
+   3b. Delete pods
+   3c. Validate
+
+******************************************************************************************************************
+
+Create kubernetes cluster with one master and three nodes 
+
+1. Creating Configmap from "multipe files" & Consuming it insdie Pod from "Volumes"
+
+1a. Create Configmap "nginx-configmap-vol" from "volumes"
+-----------------------------------------------------------
+echo -n 'Non-sensitive data inside file-1' > file-1.txt
+echo -n 'Non-sensitive data inside file-1' > file-2.txt
+
+
+kubectl create configmap nginx-configmap-vol --from-file=file-1.txt --from-file=file-2.txt
+
+kubectl get configmaps (list the configmaps)
+kubectl get configmaps nginx-configmap-vol -o yaml (display the configmap in yaml format)
+kubectl describe configmaps nginx-configmap-vol (validate the configmap)
+
+After configmap is created, we don't require files anymore. If require we can remove the files
+# rm -f file-1.txt file-2.txt
+
+========================================================================
+
+1b. Consume above "nginx-configmap-vol" configmap inside Pod from "volumes"
+---------------------------------------------------------------------------
+
+#nginx-pod-configmap-vol.yaml
+--- 
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: nginx-pod-configmap-vol
+spec: 
+  containers: 
+    - 
+      image: nginx
+      name: nginx-container
+      volumeMounts: 
+        - 
+          mountPath: "/etc/non-sensitive-data"
+          name: test-vol
+          readOnly: true
+  volumes: 
+    - 
+      configMap: 
+        items: 
+          - 
+            key: file-1.txt
+            path: file-a.txt
+          - 
+            key: file-2.txt
+            path: file-b.txt
+        name: nginx-configmap-vol
+      name: test-vol
+
+=======================================================================================
+
+1c. Create | Display | Validate
+-------------------------------
+
+# Create
+kubectl create -f nginx-pod-configmap-vol.yaml
+
+# Display
+kubectl get pods
+kubectl get configmaps
+kubectl describe pod nginx-pod-configmap-vol
+
+# Validate from "inside" the pod
+kubectl exec nginx-pod-configmap-vol -it /bin/sh
+cd/etc/non-sensitive-data
+ls
+cat file-a.txt
+cat file-b.txt
+exit
+
+
+(OR)
+
+# Validate from "outside" the pod
+
+kubectl exec nginx-pod-configmap-vol ls /etc/non-sensitive-data
+kubectl exec nginx-pod-configmap-vol cat /etc/non-sensitive-data/file-a.txt
+kubectl exec nginx-pod-configmap-vol cat /etc/non-sensitive-data/file-b.txt
+
+
+************************************************************************************************************
+
+2. Creating configmap from "literal values" & Consuming it inside Pod from "environment variables"
+
+
+2a. Create "redis-configmap-env" from "literal values"
+------------------------------------------------------
+
+kubectl create configmap redis-configmap-env --from-literal=file.1=file.a --from-literal=file.2=file.b
+
+kubectl get configmap
+kubectl get configmap redis-configmap-env -o yaml
+kubectl describe configmap redis-configmap-env
+
+========================================================================================================
+
+
+2b. Consume "redis-configmap-env" configmap inside Pod from "environment variables"
+-----------------------------------------------------------------------------------
+
+
+# redis-pod-configmap-env.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-pod-configmap-env
+spec:
+  containers:
+    -
+      env:
+        -
+          name: FILE_1
+          valueFrom:
+            configMapKeyRef:
+              key: file.1
+              name: redis-configmap-env
+        -
+          name: FILE_2
+          valueFrom:
+            configMapKeyRef:
+              key: file.2
+              name: redis-configmap-env
+      image: redis
+      name: redis-container
+  restartPolicy: Never
+
+===========================================================================================================
+
+2c. Create | Display | Validate
+-------------------------------
+
+# Create
+kubectl create -f redis-pod-configmap-env.yaml
+
+# Display
+kubectl get pods
+kubectl get configmaps
+kubectl describe pod redis-pod-configmap-env 
+
+# Validate from "inside" the pod
+kubectl exec redis-pod-configmap-env -it /bin/sh
+env | grep FILE
+
+(OR)
+
+# Validate from "outside" of the pod
+kubectl exec redis-pod-configmap-env env | grep FILE
+
+*****************************************************************************************************************
+
+3. Cleanup
+
+#delete configmaps
+kubectl delete configmaps redis-configmap-env nginx-configmap-vol
+
+#delete pods
+kubectl delete pods redis-pod-configmap-env nginx-pod-configmap-vol
+
+#Validate
+kubectl get pods
+kubectl get configmaps
+
+*****************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

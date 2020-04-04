@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod-configmap-vol
+spec:
+  containers:
+    -
+      image: nginx
+      name: nginx-container
+      volumeMounts:
+        -
+          mountPath: /etc/non-sensitive-data
+          name: test-vol
+          readOnly: true
+  volumes:
+    -
+      configMap:
+        items:
+          -
+            key: file-1.txt
+            path: file-a.txt
+          -
+            key: file-2.txt
+            path: file-b.txt
+        name: nginx-configmap-vol
+      name: test-vol

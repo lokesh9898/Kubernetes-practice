@@ -1,0 +1,112 @@
+Master atleast 2 core CPUs & 4 GB RAM
+Node atleast 1 core CPU & 4 GB RAM
+
+------------------------Kubernetes Master installation {Step 1 & 2}--------------------------------------------------
+Step 1:
+//On Master
+sudo kubeadm init --pod-network-cidr=<> --apiserver-advertise-address=<ip-address-of-the-Master>
+// For example
+    There are so name flags in the Kubernetes, we can use any channel
+    For starting Calico CNI:192.168.0.0/16 or For starting a Flannel CNI: 10.244.0.0/16 {CNI== Container Network Interface}
+    Calico or Flannel called as pod networks
+
+Step 2:
+//Run the following commands as normal user
+mkdir -p $HOME/.kube
+cp -i /etc/Kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+Confirmation Steps in Master
+kubectl get nodes                             //Status of Nodes
+kubectl get pods --all-namespaces             //Status of PODS
+kubectl get -o wide pods --all-namespaces     //Detailed Status of PODS
+
+------------------------- Bring up POD -----------------------------
+Step 3:
+//For creating a POD based on Calico
+kubectl apply -f https://docs.projectcalico.org/v3.9/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml
+  In this step ,it will create a Calico POD and it will create default pods too
+
+
+------------------------Creating kubernetes Dashboard, serviceaccount, password {Step 4,5,6,7 & 8}-----------------------------
+Step 4:
+//For creating the dashboard - bring this up before starting nodes
+kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommend/kubernetes-dashboard.yaml
+
+Step 5:(we just enable the dashboard)
+//To enable proxy and continues with new terminal window
+kubectl proxy
+
+
+Step 6:
+//To create service account for your dashboard(service account creation for login)
+kubectl create serviceaccount dashboard -n default
+  If you want to access  the dashboard, first we have to create the service account for the dashboard
+
+
+Step 7:
+//To add cluster binding rules for ur roles on dashboard
+kubectl create clusterrolebinding dashboard-admin -n default --cluster=cluster-admin --serviceaccount=default:dashboard
+  {we are going to be the admin user for the dashboard of this serviceaccount}
+
+
+Step 8:
+//TO get the secret key to be pasted into the dashboard token pwd, Copy the outcoming secret key
+kubectl get secret $(kubectl get serviceaccount dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64  --decode
+
+
+------------------- Login the Dashboard ----------------
+  Goto http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login   for accessing the dashboard
+
+
+--------- Nodes join to the cluster -------------------
+// On Nodes run the Join command that was obtained "kubeadm init". Replace the ip of the Master's, token and discovery flags from below line
+sudo kubeadm join <ip-address-of-the-master> --token  <token-id will come> --discovery-token-ca-cert-hash  <Hash algorithm token will come>
+
+
+///////////////----------- Cluster setup is done ---------------------/////////////////
+
+For generating token again, run this in master
+kubeadm create --print-join-command
+
+
+//On Master, For deploying as NGINX App through CLI. Usually its done via YAML File
+
+kubectl create deployment nginx  --image=nginx                    //1st, create a deployment
+kubectl get deployments                                           //Verify the deployment
+kubectl describe deployment nginx                                  //More details about the deployment
+kubectl create service nodeport nginx --tcp=80:80                 //Create the service on the Nodes
+kubectl get svc                                                   //To check which deployment in running on which node
+kubectl delete deployment <name>                                  //To delete the deployment
+
+////---------------Deployment using Yaml File-----------\\\\\\\\\\\\\
+
+apiVerion: extension/vbeta1
+kind: Deployment
+metadata:
+  name: projectDelta
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: front-end
+          image: nginx
+          ports:
+            - containerPort: 80
+        - name: Apache
+          image: httpd
+          ports:
+            - containerPort: 88
+
+
+///Create a Deployment using YAML
+  kubectl create -f deployment.yaml
+
+
+kubectl drain <node-name> --delete-local-data --force --ignore-daemonsets         //to drain a particular node
+kubectl delete node <node name>                                                   //to delete a node
