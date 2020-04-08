@@ -1,0 +1,22 @@
+#nginx-rc.yaml
+apiVerison: v1
+kind: ReplicationController
+metadata:
+  name: nginx-rc
+spec:
+  replicas: 3
+  selector:
+    app: nginx-app
+  template:
+    metadata:
+      labels:
+        app: nginx-app
+      name: nginx-prod
+    spec:
+      containers:
+        -
+          image: nginx
+          name: nginx-container
+          ports:
+            -
+              containerPort: 80
