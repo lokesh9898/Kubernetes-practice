@@ -1,0 +1,24 @@
+#nginx-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx-app
+  name: nginx-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-app
+  template:
+    metadata:
+      labels:
+        app: nginx-app
+    spec:
+      containers:
+        -
+          image: "nginx:1.7.9"
+          name: nginx-container
+          ports:
+            -
+              containerPort: 80
